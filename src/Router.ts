@@ -6,12 +6,12 @@ type RouteNode<T> = {
 const keepNonEmpty = x => x;
 
 export class Router<T> {
-    private _routeNodes: RouteNode<T> = this._createRouteNode();
+    private _routeStack: RouteNode<T> = this._createRouteNode();
 
     public register(path: string, value: T) {
         const segments = this._pathToSegments(path);
 
-        let node = this._routeNodes;
+        let node = this._routeStack;
 
         for (const segment of segments) {
             const foundNode = node.stack.find(item => this._isRouteNode(item) && item.path === segment) as RouteNode<T>;
@@ -29,20 +29,18 @@ export class Router<T> {
         node.stack.push(value);
     }
 
-    public resolve(path: string): T[] | undefined {
+    public resolve(path: string): T[] {
         return this._resolve(
             this._pathToSegments(path)
         );
     }
 
-    private _resolve(segments: string[], node: RouteNode<T> = this._routeNodes, result: T[] = []): T[] | undefined {
+    private _resolve(segments: string[], node: RouteNode<T> = this._routeStack, result: T[] = []): T[] {
         for (const stackItem of node.stack) {
             if(!this._isRouteNode(stackItem)) {
                 result.push(stackItem);
             } else if(stackItem.path === segments[0]) {
                  this._resolve(segments.slice(1), stackItem, result)
-            } else {
-                return undefined;
             }
         }
 
