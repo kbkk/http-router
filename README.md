@@ -32,6 +32,6 @@ server.get('/cats', async ctx => {
     ctx.res = 'Imagine some cute cats here.';
 });
 
-// now, GET /cats and you're not rejected you'll see:
+// now, GET /cats and if you're not rejected you'll see:
 // Imagine some cute cats here. And even more of them.
 ```
