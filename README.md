@@ -5,7 +5,7 @@ A simple HTTP router with middleware support 👌
 Everything within the router is treated as a middleware, the `.get()` and `.post()` methods just wrap the provided function
 in another, special middleware that only allows requests of that kind.
 
-The registered middlewares will run in registration order.
+The middlewares will run in registration order.
 
 ## Usage
 ```typescript
