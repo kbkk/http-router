@@ -8,7 +8,7 @@ describe('Router', () => {
         router = new Router<string>();
     });
 
-    it('should return an empty array when an unknown path is requested', function () {
+    it('should return an empty array when an unknown path is requested', () => {
         const result = router.resolve('/');
 
         expect(result).to.eql([]);
@@ -30,7 +30,7 @@ describe('Router', () => {
         expect(result).to.eql(['test']);
     });
 
-    it('should return result in insertion order', function () {
+    it('should return result in insertion order', () => {
         router.register('/nested', '1');
         router.register('/nested/path', '2');
         router.register('/nested', '3');

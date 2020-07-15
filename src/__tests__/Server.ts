@@ -31,8 +31,8 @@ describe('Server', () => {
     });
 
     it('should respond with 405 when a route is invoked with invalid HTTP method', async () => {
-        server.post('/test', async req => {
-            req.res = 'POST /test response'
+        server.post('/test', async ctx => {
+            ctx.res = 'POST /test response'
         });
 
         const result = await fetch(`${serverUrl}test`);
@@ -41,8 +41,8 @@ describe('Server', () => {
     });
 
     it('should handle GET requests', async () => {
-        server.get('/test', async req => {
-            req.res = 'GET /test response'
+        server.get('/test', async ctx => {
+            ctx.res = 'GET /test response'
         });
 
         const result = await fetch(`${serverUrl}test`);
@@ -52,8 +52,8 @@ describe('Server', () => {
     });
 
     it('should handle POST requests', async () => {
-        server.post('/test', async req => {
-            req.res = req.body;
+        server.post('/test', async ctx => {
+            ctx.res = ctx.body;
         });
 
         const result = await fetch(`${serverUrl}test`, {method: 'POST', body: 'test-body'});
@@ -63,18 +63,18 @@ describe('Server', () => {
     });
 
     it('should handle different GET/POST callbacks on same path', async () => {
-        server.use('/same-path-test', async (req, next) => {
-            req.res = 'middleware ';
+        server.use('/same-path-test', async (ctx, next) => {
+            ctx.res = 'middleware ';
 
             await next();
         });
 
-        server.get('/same-path-test', async req => {
-            req.res += 'GET /same-path-test response';
+        server.get('/same-path-test', async ctx => {
+            ctx.res += 'GET /same-path-test response';
         });
 
-        server.post('/same-path-test', async req => {
-            req.res += 'POST /same-path-test response';
+        server.post('/same-path-test', async ctx => {
+            ctx.res += 'POST /same-path-test response';
         });
 
         const getResult = await fetch(`${serverUrl}same-path-test`);
