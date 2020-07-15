@@ -4,6 +4,7 @@ import {AddressInfo} from "net";
 import {Router} from "./Router";
 
 export type RequestContext = {
+    readonly body: Buffer;
     readonly method: string;
     res?: string | Buffer;
     status?: number;
@@ -76,12 +77,6 @@ class Server {
     }
 
     private async _handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
-        const chunks: Buffer[] = [];
-
-        for await (const chunk of req) {
-            chunks.push(chunk);
-        }
-
         const middlewareStack = this._router.resolve(req.url!);
 
         if (middlewareStack.length === 0) {
@@ -91,7 +86,14 @@ class Server {
             return;
         }
 
+        const chunks: Buffer[] = [];
+
+        for await (const chunk of req) {
+            chunks.push(chunk);
+        }
+
         const requestContext = {
+            body: Buffer.concat(chunks),
             method: req.method,
             res: '',
             status: 405
@@ -103,7 +105,7 @@ class Server {
             nextMiddleware = middlewareStack[i].bind(null, requestContext, nextMiddleware);
         }
 
-        await nextMiddleware?.();
+        await nextMiddleware();
 
         res.writeHead(requestContext.status);
         res.write(requestContext.res);

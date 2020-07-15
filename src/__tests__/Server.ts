@@ -53,13 +53,13 @@ describe('Server', () => {
 
     it('should handle POST requests', async () => {
         server.post('/test', async req => {
-            req.res = 'POST /test response'
+            req.res = req.body;
         });
 
-        const result = await fetch(`${serverUrl}test`, {method: 'POST'});
+        const result = await fetch(`${serverUrl}test`, {method: 'POST', body: 'test-body'});
 
         expect(result.status).to.eql(200);
-        expect(await result.text()).to.eql('POST /test response');
+        expect(await result.text()).to.eql('test-body');
     });
 
     it('should handle different GET/POST callbacks on same path', async () => {
