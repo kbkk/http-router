@@ -39,3 +39,19 @@ server.get('/cats', async ctx => {
 ## Considerations
 The router allows for a really great middleware composition, which is done by sacrificing some performance. 
 The performance could be improved by dropping the route stack and replacing it with a nested dictionary.
+
+## Development
+### Install
+```shell script
+$ npm i
+```
+### Testing
+```shell script
+$ npm run test
+```
+
+### Lint
+It's best if you configure ESLint support in your IDE.
+```shell script
+$ npm run lint
+```
