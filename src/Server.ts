@@ -86,7 +86,12 @@ class Server {
             nextMiddleware = middlewareStack[i].bind(null, requestContext, nextMiddleware);
         }
 
-        await nextMiddleware();
+        try {
+            await nextMiddleware();
+        } catch (e) {
+            requestContext.res = 'Internal Server Error';
+            requestContext.status = 500;
+        }
 
         res.writeHead(requestContext.status);
         res.write(requestContext.res);

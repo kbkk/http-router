@@ -40,6 +40,17 @@ describe('Server', () => {
         expect(result.status).to.eql(405);
     });
 
+    it('should respond with 500 if a middlewware throws', async () => {
+        server.get('/test', ctx => {
+            throw new Error();
+        });
+
+        const result = await fetch(`${serverUrl}test`);
+
+        expect(result.status).to.eql(500);
+        expect(await result.text()).to.eql('Internal Server Error');
+    });
+
     it('should handle GET requests', async () => {
         server.get('/test', async ctx => {
             ctx.res = 'GET /test response';
