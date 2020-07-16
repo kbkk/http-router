@@ -1,32 +1,59 @@
-type RouteNode<T> = {
-    path: string;
-    stack: (RouteNode<T> | T)[];
+class RouteNode<T> {
+    private readonly _stack: (RouteNode<T> | T)[] = [];
+
+    public constructor(
+        public readonly path: string
+    ) {
+
+    }
+
+    public add(value: RouteNode<T> | T): void {
+        this._stack.push(value);
+    }
+
+    public next(path: string): RouteNode<T> | undefined {
+        return this._stack.find(item => item instanceof RouteNode && item.path === path) as RouteNode<T>;
+    }
+
+    public findAll(segments: string[]): T[] {
+        const result: T[] = [];
+
+        for (const item of this._stack) {
+            if (!(item instanceof RouteNode)) {
+                result.push(item);
+            } else if (item.path === segments[0]) {
+                result.push(...item.findAll(segments.slice(1)));
+            }
+        }
+
+        return result;
+    }
 }
 
-const keepNonEmpty = x => x;
+const keepNonEmpty = (x: unknown): boolean => !!x;
 
 export class Router<T> {
-    private _routeStack: RouteNode<T> = this._createRouteNode();
+    private _routeStack: RouteNode<T> = new RouteNode('/');
 
-    public register(path: string, value: T) {
+    public register(path: string, value: T): void {
         const segments = this._pathToSegments(path);
 
         let node = this._routeStack;
 
         for (const segment of segments) {
-            const foundNode = node.stack.find(item => this._isRouteNode(item) && item.path === segment) as RouteNode<T>;
+            const foundNode = node.next(segment);
 
             if (foundNode) {
                 node = foundNode;
                 continue;
             }
 
-            const newNode = this._createRouteNode(segment);
-            node.stack.push(newNode);
+            const newNode = new RouteNode<T>(segment);
+            node.add(newNode);
             node = newNode;
         }
 
-        node.stack.push(value);
+        node.add(value);
     }
 
     public resolve(path: string): T[] {
@@ -35,16 +62,8 @@ export class Router<T> {
         );
     }
 
-    private _resolve(segments: string[], node: RouteNode<T> = this._routeStack, result: T[] = []): T[] {
-        for (const stackItem of node.stack) {
-            if(!this._isRouteNode(stackItem)) {
-                result.push(stackItem);
-            } else if(stackItem.path === segments[0]) {
-                 this._resolve(segments.slice(1), stackItem, result)
-            }
-        }
-
-        return result;
+    private _resolve(segments: string[]): T[] {
+        return this._routeStack.findAll(segments);
     }
 
     private _pathToSegments(path: string): string[] {
@@ -53,16 +72,5 @@ export class Router<T> {
         }
 
         return path.split('/').filter(keepNonEmpty);
-    }
-
-    private _isRouteNode(value: unknown): value is RouteNode<T> {
-        return typeof value === 'object' && 'stack' in (value as object);
-    }
-
-    private _createRouteNode(path = '/'): RouteNode<T> {
-        return {
-            path,
-            stack: []
-        }
     }
 }

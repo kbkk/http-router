@@ -30,7 +30,7 @@ describe('Router', () => {
         expect(result).to.eql(['test']);
     });
 
-    it('should return result in insertion order', () => {
+    it('should return values in insertion order', () => {
         router.register('/nested', '1');
         router.register('/nested/path', '2');
         router.register('/nested', '3');
@@ -38,6 +38,20 @@ describe('Router', () => {
         const result = router.resolve('/nested/path');
 
         expect(result).to.eql(['1', '2', '3']);
+    });
+
+    it('should traverse a complex stack', () => {
+        router.register('/nested', '1');
+        router.register('/nested/path', '2');
+        router.register('/nested/path/go-here', '3');
+        router.register('/nested/dont-go-here', 'wrong');
+        router.register('/nested/path/dont-go-here', 'wrong');
+        router.register('/nested/path/1/dont-go-here', 'wrong');
+        router.register('/', '4');
+
+        const result = router.resolve('/nested/path/go-here');
+
+        expect(result).to.eql(['1', '2', '3', '4']);
     });
 });
 
