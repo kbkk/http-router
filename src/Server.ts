@@ -16,34 +16,32 @@ export type MiddlewareCallback = (ctx: RequestContext, next: BoundMiddlewareCall
 
 const noop: BoundMiddlewareCallback = () => Promise.resolve();
 
+function _createHttpMethodGuardMiddleware(method: 'GET' | 'POST', fn: MiddlewareCallback): MiddlewareCallback {
+    // return a named function for easier stack trace reading
+    return function httpMethodGuardMiddleware(ctx, next) {
+        if (ctx.method === method) {
+            ctx.status = 200;
+            return fn(ctx, next);
+        } else {
+            return next();
+        }
+    };
+}
+
 class Server {
     private _router = new Router<MiddlewareCallback>();
     private _httpServer: http.Server | undefined;
 
-    public use(path: string, fn: MiddlewareCallback) {
+    public use(path: string, fn: MiddlewareCallback): void {
         this._router.register(path, fn);
     }
 
-    public get(path: string, fn: MiddlewareCallback) {
-        this._router.register(path, function getMiddleware(ctx, next) {
-            if (ctx.method === 'GET') {
-                ctx.status = 200;
-                return fn(ctx, next);
-            } else {
-                return next();
-            }
-        });
+    public get(path: string, fn: MiddlewareCallback): void {
+        this._router.register(path, _createHttpMethodGuardMiddleware('GET', fn));
     }
 
-    public post(path: string, fn: MiddlewareCallback) {
-        this._router.register(path, function postMiddleware(ctx, next) {
-            if (ctx.method === 'POST') {
-                ctx.status = 200;
-                return fn(ctx, next);
-            } else {
-                return next();
-            }
-        });
+    public post(path: string, fn: MiddlewareCallback): void {
+        this._router.register(path, _createHttpMethodGuardMiddleware('POST', fn));
     }
 
     public async start(port: number, hostname?: string): Promise<string> {
@@ -76,7 +74,7 @@ class Server {
         this._httpServer = undefined;
     }
 
-    private async _handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
+    private async _handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
         const middlewareStack = this._router.resolve(req.url!);
 
         if (middlewareStack.length === 0) {

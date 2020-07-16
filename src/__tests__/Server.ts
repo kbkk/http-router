@@ -32,7 +32,7 @@ describe('Server', () => {
 
     it('should respond with 405 when a route is invoked with invalid HTTP method', async () => {
         server.post('/test', async ctx => {
-            ctx.res = 'POST /test response'
+            ctx.res = 'POST /test response';
         });
 
         const result = await fetch(`${serverUrl}test`);
@@ -42,7 +42,7 @@ describe('Server', () => {
 
     it('should handle GET requests', async () => {
         server.get('/test', async ctx => {
-            ctx.res = 'GET /test response'
+            ctx.res = 'GET /test response';
         });
 
         const result = await fetch(`${serverUrl}test`);
@@ -84,4 +84,3 @@ describe('Server', () => {
         expect(await postResult.text()).to.eql('middleware POST /same-path-test response');
     });
 });
-
