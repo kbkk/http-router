@@ -73,14 +73,8 @@ class Server {
             return;
         }
 
-        const chunks: Buffer[] = [];
-
-        for await (const chunk of req) {
-            chunks.push(chunk);
-        }
-
         const requestContext = {
-            body: Buffer.concat(chunks),
+            body: await this._readRequestBody(req),
             method: req.method,
             res: '',
             status: 405
@@ -97,6 +91,16 @@ class Server {
         res.writeHead(requestContext.status);
         res.write(requestContext.res);
         res.end();
+    }
+
+    private async _readRequestBody(req: http.IncomingMessage): Promise<Buffer> {
+        const chunks: Buffer[] = [];
+
+        for await (const chunk of req) {
+            chunks.push(chunk);
+        }
+
+        return Buffer.concat(chunks);
     }
 }
 
