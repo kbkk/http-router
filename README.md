@@ -35,3 +35,7 @@ server.get('/cats', async ctx => {
 // now, GET /cats and if you're not rejected you'll see:
 // Imagine some cute cats here. And even more of them.
 ```
+
+## Considerations
+The router allows for a really great middleware composition, which is done by sacrificing some performance. 
+The performance could be improved by dropping the route stack and replacing it with a nested dictionary.

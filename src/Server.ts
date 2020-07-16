@@ -2,6 +2,7 @@ import * as http from 'http';
 import {once} from 'events';
 import {AddressInfo} from "net";
 import {Router} from "./Router";
+import {createHttpMethodGuardMiddleware} from "./middleware/httpMethodGuardMiddleware";
 
 export type RequestContext = {
     readonly body: Buffer;
@@ -14,19 +15,7 @@ export type BoundMiddlewareCallback = () => Promise<unknown>;
 
 export type MiddlewareCallback = (ctx: RequestContext, next: BoundMiddlewareCallback) => Promise<unknown> | unknown;
 
-const noop: BoundMiddlewareCallback = () => Promise.resolve();
-
-function _createHttpMethodGuardMiddleware(method: 'GET' | 'POST', fn: MiddlewareCallback): MiddlewareCallback {
-    // return a named function for easier stack trace reading
-    return function httpMethodGuardMiddleware(ctx, next) {
-        if (ctx.method === method) {
-            ctx.status = 200;
-            return fn(ctx, next);
-        } else {
-            return next();
-        }
-    };
-}
+const noopMiddleware: BoundMiddlewareCallback = () => Promise.resolve();
 
 class Server {
     private _router = new Router<MiddlewareCallback>();
@@ -37,11 +26,11 @@ class Server {
     }
 
     public get(path: string, fn: MiddlewareCallback): void {
-        this._router.register(path, _createHttpMethodGuardMiddleware('GET', fn));
+        this._router.register(path, createHttpMethodGuardMiddleware('GET', fn));
     }
 
     public post(path: string, fn: MiddlewareCallback): void {
-        this._router.register(path, _createHttpMethodGuardMiddleware('POST', fn));
+        this._router.register(path, createHttpMethodGuardMiddleware('POST', fn));
     }
 
     public async start(port: number, hostname?: string): Promise<string> {
@@ -97,7 +86,7 @@ class Server {
             status: 405
         };
 
-        let nextMiddleware: BoundMiddlewareCallback = noop;
+        let nextMiddleware: BoundMiddlewareCallback = noopMiddleware;
 
         for (let i = middlewareStack.length - 1; i >= 0; i--) {
             nextMiddleware = middlewareStack[i].bind(null, requestContext, nextMiddleware);
